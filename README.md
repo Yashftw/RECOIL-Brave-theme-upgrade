@@ -99,6 +99,3 @@ Optimized for Chromium-based browsers
 
 ---
 
-## License
-
-MIT
