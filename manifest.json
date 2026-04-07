@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "RECOIL",
+  "version": "3.0.0",
+  "description": "Liminal productivity. Dark editorial dashboard.",
+  "permissions": ["storage","tabs","topSites","management","bookmarks"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {"16":"icons/icon16.png","48":"icons/icon48.png","128":"icons/icon128.png"}
+  },
+  "chrome_url_overrides": {"newtab": "newtab.html"},
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [{"matches":["http://*/*","https://*/*"],"js":["content.js"],"run_at":"document_end","all_frames":false}],
+  "commands": {
+    "toggle-sidebar": {"suggested_key":{"default":"Ctrl+Shift+Y","mac":"Command+Shift+Y"},"description":"Toggle sidebar"}
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sidebar.js","styles/sidebar.css","styles/overlay.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

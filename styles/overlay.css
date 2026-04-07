@@ -1,0 +1,118 @@
+/* ============================================================
+   RECOIL — overlay.css
+   Dark theme applied to visited websites via content.js
+   All rules scoped to html[data-recoil="1"] to avoid conflicts
+   ============================================================ */
+
+html[data-recoil="1"] {
+  --rcl-bg:   #0a0a0a !important;
+  --rcl-bg2:  #111111 !important;
+  --rcl-ink:  #f0ede8 !important;
+  --rcl-gray: #5a5855 !important;
+  --rcl-line: rgba(255,255,255,.08) !important;
+  --rcl-red:  #e8192c !important;
+}
+
+/* Base page background + text */
+html[data-recoil="1"],
+html[data-recoil="1"] body {
+  background-color: #0a0a0a !important;
+  color: #f0ede8 !important;
+}
+
+/* Scrollbars */
+html[data-recoil="1"] ::-webkit-scrollbar {
+  width: 6px !important; height: 6px !important;
+}
+html[data-recoil="1"] ::-webkit-scrollbar-track {
+  background: #111111 !important;
+}
+html[data-recoil="1"] ::-webkit-scrollbar-thumb {
+  background: #2a2a2a !important; border-radius: 0 !important;
+}
+html[data-recoil="1"] ::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a !important;
+}
+
+/* Inputs and buttons */
+html[data-recoil="1"] input,
+html[data-recoil="1"] textarea,
+html[data-recoil="1"] select {
+  background: #161616 !important;
+  color: #f0ede8 !important;
+  border-color: rgba(255,255,255,.12) !important;
+  outline-color: rgba(232,25,44,.5) !important;
+}
+html[data-recoil="1"] input::placeholder,
+html[data-recoil="1"] textarea::placeholder {
+  color: #5a5855 !important;
+}
+html[data-recoil="1"] input:focus,
+html[data-recoil="1"] textarea:focus,
+html[data-recoil="1"] select:focus {
+  border-color: rgba(255,255,255,.25) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1) !important;
+}
+
+/* Buttons */
+html[data-recoil="1"] button {
+  background: #161616 !important;
+  color: #f0ede8 !important;
+  border-color: rgba(255,255,255,.1) !important;
+}
+html[data-recoil="1"] button:hover {
+  background: #1e1e1e !important;
+}
+
+/* Links */
+html[data-recoil="1"] a { color: #e8192c !important; }
+html[data-recoil="1"] a:visited { color: rgba(232,25,44,.7) !important; }
+html[data-recoil="1"] a:hover { color: #f0ede8 !important; }
+
+/* Backgrounds — any white/light surface goes dark */
+html[data-recoil="1"] [style*="background:#fff"],
+html[data-recoil="1"] [style*="background: #fff"],
+html[data-recoil="1"] [style*="background:white"],
+html[data-recoil="1"] [style*="background: white"],
+html[data-recoil="1"] [style*="background:#ffffff"],
+html[data-recoil="1"] [style*="background-color:#fff"],
+html[data-recoil="1"] [style*="background-color: #fff"],
+html[data-recoil="1"] [style*="background-color:white"],
+html[data-recoil="1"] [style*="background-color:rgb(255, 255, 255)"],
+html[data-recoil="1"] [style*="background-color: rgb(255, 255, 255)"] {
+  background: #111111 !important;
+  background-color: #111111 !important;
+}
+
+/* Text that would be dark-on-dark: flip to light */
+html[data-recoil="1"] [style*="color:#000"],
+html[data-recoil="1"] [style*="color: #000"],
+html[data-recoil="1"] [style*="color:black"],
+html[data-recoil="1"] [style*="color:rgb(0,0,0)"],
+html[data-recoil="1"] [style*="color: rgb(0, 0, 0)"],
+html[data-recoil="1"] [style*="color:#1a1a1a"],
+html[data-recoil="1"] [style*="color:#111"] {
+  color: #f0ede8 !important;
+}
+
+/* Selection highlight */
+html[data-recoil="1"] ::selection {
+  background: rgba(232,25,44,.25) !important;
+  color: #f0ede8 !important;
+}
+
+/* Border colours */
+html[data-recoil="1"] [style*="border-color:rgb(255"],
+html[data-recoil="1"] [style*="border-color: rgb(255"],
+html[data-recoil="1"] [style*="border-color:#fff"] {
+  border-color: rgba(255,255,255,.08) !important;
+}
+
+/* Search result pages — Google, Bing etc */
+html[data-recoil="1"] #rso .g,
+html[data-recoil="1"] .yuRUbf a,
+html[data-recoil="1"] .LC20lb { color: #f0ede8 !important; }
+html[data-recoil="1"] .VwiC3b,
+html[data-recoil="1"] .IsZvec { color: #8a8680 !important; }
+html[data-recoil="1"] cite { color: #e8192c !important; }

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RECOIL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Syne:wght@600;700;800&display=swap');
+
+/* ── DARK THEME VARIABLES ── */
+:root {
+  --bg:      #0a0a0a;
+  --bg2:     #111111;
+  --bg3:     #1a1a1a;
+  --surface: #161616;
+  --line:    rgba(255,255,255,.08);
+  --line2:   rgba(255,255,255,.04);
+  --ink:     #f0ede8;
+  --gray:    #5a5855;
+  --gray2:   #3a3836;
+  --red:     #e8192c;
+  --red2:    rgba(232,25,44,.12);
+  --font:    'Syne', sans-serif;
+  --mono:    'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; background: var(--bg); color: var(--ink);
+  font-family: var(--font); font-size: 12px; overflow: hidden;
+  margin-left: 0 !important;
+}
+
+/* Subtle noise grain */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ── SHELL ── */
+.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* ── TOPBAR — hides when search is active ── */
+.topbar {
+  flex-shrink: 0; height: 50px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; padding: 0 28px; gap: 20px;
+  background: var(--bg2);
+  transition: height .25s ease, opacity .25s ease, border-color .25s;
+  overflow: hidden;
+}
+.topbar.hidden {
+  height: 0; opacity: 0; border-color: transparent; pointer-events: none;
+}
+
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: .28em;
+  color: var(--ink); text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.wordmark em { font-style: normal; color: var(--red); }
+
+.top-search-wrap { flex: 1; max-width: 440px; position: relative; }
+.top-search-pfx {
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 10px; color: var(--gray);
+  pointer-events: none; letter-spacing: .06em;
+}
+.top-search-bar {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid var(--line); color: var(--ink);
+  font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+  padding: 5px 0 5px 22px; outline: none; transition: border-color .15s;
+}
+.top-search-bar:focus { border-color: rgba(255,255,255,.3); }
+.top-search-bar::placeholder { color: var(--gray); }
+
+.clock-wrap { margin-left: auto; flex-shrink: 0; text-align: right; }
+.clock { font-family: var(--mono); font-size: 14px; color: var(--ink); letter-spacing: .04em; }
+.clock-date { font-family: var(--mono); font-size: 9px; color: var(--gray); letter-spacing: .08em; margin-top: 1px; }
+
+/* ── BODY ROW ── */
+.body-row { flex: 1; display: flex; overflow: hidden; }
+
+/* ── LEFT SIDEBAR ── */
+.sidebar {
+  width: 192px; flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.nav-section { border-bottom: 1px solid var(--line); padding: 4px 0; }
+.nav-label {
+  font-size: 8px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--gray); padding: 8px 18px 4px;
+}
+
+.nav-btn {
+  display: flex; align-items: center; padding: 9px 18px;
+  background: none; border: none; border-bottom: 1px solid var(--line2);
+  font-family: var(--font); font-size: 9px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--gray);
+  cursor: pointer; width: 100%; text-align: left; position: relative;
+  transition: color .15s, background .15s; text-decoration: none;
+  gap: 8px;
+}
+.nav-btn:last-child { border-bottom: none; }
+.nav-btn:hover { color: var(--ink); background: rgba(255,255,255,.03); }
+.nav-btn.active { color: var(--ink); background: rgba(255,255,255,.04); }
+.nav-btn.active::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--red);
+}
+.nav-num { font-family: var(--mono); font-size: 8px; color: var(--gray2); margin-left: auto; }
+.nav-btn.active .nav-num { color: var(--red); }
+.nav-badge {
+  background: var(--red); color: #fff; font-family: var(--mono);
+  font-size: 8px; padding: 1px 5px; display: none;
+}
+
+/* ── MAIN ── */
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); }
+.view { display: none; flex: 1; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.view.active { display: flex; }
+.view::-webkit-scrollbar { width: 3px; }
+.view::-webkit-scrollbar-thumb { background: var(--gray2); border-radius: 2px; }
+
+/* ── STATUS BAR ── */
+.statusbar {
+  flex-shrink: 0; height: 26px; background: var(--bg2); border-top: 1px solid var(--line);
+  display: flex; align-items: center; padding: 0 28px; gap: 16px;
+  font-family: var(--mono); font-size: 9px; color: var(--gray); letter-spacing: .08em;
+}
+.sb-sep { flex: 1; }
+.sb-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+
+/* ── COMMON ── */
+.panel-wrap { padding: 24px 28px; }
+.section-head {
+  font-size: 8px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--gray); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.section-head span { color: var(--red); font-family: var(--mono); font-size: 9px; }
+
+.lx-input {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid var(--line); color: var(--ink);
+  font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+  padding: 8px 0; outline: none; transition: border-color .15s;
+}
+.lx-input:focus { border-color: rgba(255,255,255,.3); }
+.lx-input::placeholder { color: var(--gray); }
+
+.lx-btn {
+  background: var(--ink); color: var(--bg); border: none;
+  font-family: var(--font); font-size: 9px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 9px 18px; cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.lx-btn:hover { background: var(--red); }
+.lx-btn.ghost {
+  background: transparent; color: var(--ink); border: 1px solid var(--line);
+}
+.lx-btn.ghost:hover { border-color: rgba(255,255,255,.3); background: transparent; }
+.lx-btn:disabled { opacity: .3; cursor: default; }
+
+.input-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; }
+.input-row .lx-input { flex: 1; }
+.empty-state { font-family: var(--mono); font-size: 11px; color: var(--gray); padding: 28px 0; letter-spacing: .04em; }
+
+/* ── FEED — two-column ── */
+#view-feed { flex-direction: row; }
+.feed-hero {
+  flex: 1; border-right: 1px solid var(--line);
+  position: relative; overflow: hidden; display: flex; flex-direction: column;
+}
+/* Dark CRT blob — black on dark, a lighter radial glow effect */
+.feed-blob {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(232,25,44,.07) 0%, rgba(232,25,44,.02) 40%, transparent 70%);
+}
+.feed-blob.b1 { width: 70%; aspect-ratio: 1; top: -10%; right: -15%; }
+.feed-blob.b2 { width: 55%; aspect-ratio: 1; bottom: -20%; left: -8%;
+  background: radial-gradient(circle, rgba(255,255,255,.03) 0%, transparent 65%); }
+.feed-hero-content { position: relative; z-index: 1; padding: 24px 24px 20px; flex: 1; display: flex; flex-direction: column; }
+.feed-hero-mark { font-size: 8px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--gray); margin-bottom: 10px; }
+.feed-hero-mark span { color: var(--red); }
+.feed-hero-title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); line-height: 1.12; margin-bottom: 14px; }
+.feed-hero-body { font-family: var(--mono); font-size: 11px; color: var(--gray); line-height: 1.75; flex: 1; }
+.feed-hero-meta { font-family: var(--mono); font-size: 9px; color: var(--gray2); display: flex; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); margin-top: 16px; }
+.feed-list { width: 260px; flex-shrink: 0; overflow-y: auto; border-left: 0; }
+.feed-list::-webkit-scrollbar { display: none; }
+.feed-item {
+  padding: 14px 18px; border-bottom: 1px solid var(--line2);
+  cursor: pointer; transition: background .15s; position: relative;
+}
+.feed-item:hover { background: rgba(255,255,255,.03); }
+.feed-item.selected { background: rgba(255,255,255,.04); }
+.feed-item.selected::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--red); }
+.feed-item-mark { font-size: 7px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--red); margin-bottom: 4px; }
+.feed-item-title { font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--ink); line-height: 1.4; margin-bottom: 4px; }
+.feed-item-meta { font-family: var(--mono); font-size: 9px; color: var(--gray); }
+
+/* ── SEARCH VIEW — fullscreen, hides topbar ── */
+#view-search { justify-content: center; align-items: center; background: var(--bg); }
+.search-center { width: 100%; max-width: 620px; padding: 0 40px; }
+.search-center-label {
+  font-size: 8px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--gray); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+}
+.search-center-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--line);
+}
+.search-big-wrap { position: relative; margin-bottom: 24px; }
+.search-big-pfx {
+  position: absolute; left: 0; bottom: 10px;
+  font-family: var(--mono); font-size: 14px; color: var(--red); pointer-events: none;
+}
+.search-big {
+  width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--gray2);
+  color: var(--ink); font-family: var(--mono); font-size: 22px; letter-spacing: .02em;
+  padding: 10px 0 10px 24px; outline: none; transition: border-color .2s;
+}
+.search-big::placeholder { color: var(--gray2); }
+.search-big:focus { border-color: var(--ink); }
+.engine-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.engine-btn {
+  background: none; border: 1px solid var(--line); font-family: var(--font);
+  font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gray); padding: 6px 14px; cursor: pointer; transition: all .15s;
+}
+.engine-btn:hover { border-color: rgba(255,255,255,.2); color: var(--ink); }
+.engine-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* ── TODO ── */
+.todo-progress { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.todo-pbar { flex: 1; height: 1px; background: var(--line); position: relative; overflow: hidden; }
+.todo-pfill { position: absolute; left: 0; top: 0; height: 100%; background: var(--ink); transition: width .4s ease; }
+.todo-ptext { font-family: var(--mono); font-size: 10px; color: var(--gray); white-space: nowrap; }
+
+.todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line2); }
+.todo-item:last-child { border-bottom: none; }
+.todo-check {
+  width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px;
+  border: 1px solid var(--gray2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; user-select: none; font-size: 9px; color: var(--bg);
+}
+.todo-check:hover { border-color: rgba(255,255,255,.3); }
+.todo-item.done .todo-check { background: var(--ink); border-color: var(--ink); }
+.todo-text { flex: 1; font-family: var(--mono); font-size: 12px; color: var(--ink); line-height: 1.5; }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--gray); }
+.todo-del { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; transition: color .15s; }
+.todo-del:hover { color: var(--red); }
+
+/* ── JOURNAL ── */
+.j-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.j-date { flex: 1; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); }
+.j-textarea {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid var(--line); resize: none; min-height: 280px;
+  color: var(--ink); font-family: var(--mono); font-size: 12px;
+  letter-spacing: .04em; line-height: 1.85; padding: 4px 0; outline: none;
+  transition: border-color .15s;
+}
+.j-textarea:focus { border-color: rgba(255,255,255,.3); }
+.j-status { font-family: var(--mono); font-size: 9px; color: var(--gray); text-align: right; margin-top: 8px; height: 14px; }
+.j-hist-item { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line2); cursor: pointer; transition: opacity .15s; }
+.j-hist-item:hover { opacity: .55; }
+.j-hist-date { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+.j-hist-preview { font-family: var(--mono); font-size: 9px; color: var(--gray); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+
+/* ── AI AGENTS ── */
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 10px; margin-bottom: 24px; }
+.agent-card {
+  border: 1px solid var(--line); padding: 16px 14px; background: var(--surface);
+  text-decoration: none; display: flex; flex-direction: column; gap: 4px;
+  transition: border-color .15s, background .15s; position: relative;
+}
+.agent-card:hover { border-color: rgba(255,255,255,.18); background: var(--bg3); }
+.agent-mark { font-size: 7px; font-weight: 800; letter-spacing: .2em; color: var(--red); text-transform: uppercase; }
+.agent-label { font-size: 13px; font-weight: 800; letter-spacing: .04em; color: var(--ink); text-transform: uppercase; }
+.agent-url { font-family: var(--mono); font-size: 9px; color: var(--gray); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agent-del { position: absolute; top: 6px; right: 10px; background: none; border: none; color: var(--gray); cursor: pointer; font-size: 13px; opacity: 0; transition: opacity .15s, color .15s; }
+.agent-card:hover .agent-del { opacity: 1; }
+.agent-del:hover { color: var(--red); }
+.add-block { border: 1px solid var(--line); padding: 20px; background: var(--surface); }
+.add-block-title { font-size: 8px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--gray); margin-bottom: 16px; }
+
+/* ── COMMS ── */
+.comm-link { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line2); text-decoration: none; transition: opacity .15s; }
+.comm-link:hover { opacity: .55; }
+.comm-mark { font-size: 7px; font-weight: 800; letter-spacing: .18em; color: var(--red); text-transform: uppercase; min-width: 32px; }
+.comm-info { flex: 1; }
+.comm-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--ink); text-transform: uppercase; }
+.comm-sub { font-family: var(--mono); font-size: 9px; color: var(--gray); margin-top: 2px; }
+.comm-arr { color: var(--gray); font-size: 12px; }
+
+/* ── TOP SITES ── */
+.sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0; }
+.site-card { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line2); text-decoration: none; transition: opacity .15s; }
+.site-card:hover { opacity: .55; }
+.site-fav { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; filter: invert(1); opacity: .7; }
+.site-fav img { width: 100%; height: 100%; object-fit: contain; }
+.site-name { font-size: 11px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-host { font-family: var(--mono); font-size: 9px; color: var(--gray); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── BOOKMARKS ── */
+.bm-search-wrap { margin-bottom: 16px; position: relative; }
+.bm-search { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 11px; padding: 7px 0; outline: none; transition: border-color .15s; letter-spacing: .04em; }
+.bm-search:focus { border-color: rgba(255,255,255,.3); }
+.bm-search::placeholder { color: var(--gray); }
+.bm-list { display: flex; flex-direction: column; }
+.bm-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line2); text-decoration: none; transition: opacity .15s; }
+.bm-item:hover { opacity: .55; }
+.bm-fav { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; overflow: hidden; filter: invert(1); opacity: .6; }
+.bm-fav img { width: 100%; height: 100%; object-fit: contain; }
+.bm-title { font-size: 11px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.bm-host { font-family: var(--mono); font-size: 9px; color: var(--gray); flex-shrink: 0; }
+.bm-count { font-family: var(--mono); font-size: 9px; color: var(--gray); }
+.bm-refresh-btn {
+  background: none; border: 1px solid var(--line); font-family: var(--mono);
+  font-size: 9px; color: var(--gray); padding: 4px 10px; cursor: pointer;
+  transition: all .15s; letter-spacing: .08em;
+}
+.bm-refresh-btn:hover { border-color: rgba(255,255,255,.2); color: var(--ink); }
+
+/* ── SYSTEM ── */
+.sys-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.sys-card { background: var(--surface); border: 1px solid var(--line); padding: 14px; }
+.sys-card-label { font-size: 7px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.sys-card-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--ink); line-height: 1; }
+.sys-card-sub { font-family: var(--mono); font-size: 9px; color: var(--gray); margin-top: 4px; }
+.sys-bar { height: 1px; background: var(--gray2); margin: 10px 0 4px; position: relative; overflow: hidden; }
+.sys-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--ink); transition: width 1s ease; }
+.sys-stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line2); }
+.sys-stat-k { font-size: 8px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--gray); }
+.sys-stat-v { font-family: var(--mono); font-size: 11px; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOPBAR — hides when search view active -->
+  <header class="topbar" id="topbar">
+    <div class="wordmark"><em>R</em>ECOIL</div>
+    <div class="top-search-wrap">
+      <div class="top-search-pfx">_</div>
+      <input class="top-search-bar" id="topSearch" placeholder="Quick search..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="clock-wrap">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="clock-date" id="clockDate">---</div>
+    </div>
+  </header>
+
+  <div class="body-row">
+
+    <!-- LEFT NAV -->
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">Workspace</div>
+        <button class="nav-btn active" data-view="feed">
+          Feed <span class="nav-num">01</span>
+        </button>
+        <button class="nav-btn" data-view="search">
+          Search <span class="nav-num">02</span>
+        </button>
+        <button class="nav-btn" data-view="todo">
+          Tasks
+          <span class="nav-badge" id="todoBadge">0</span>
+          <span class="nav-num">03</span>
+        </button>
+        <button class="nav-btn" data-view="journal">
+          Journal <span class="nav-num">04</span>
+        </button>
+        <button class="nav-btn" data-view="agents">
+          AI Agents <span class="nav-num">05</span>
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Links</div>
+        <button class="nav-btn" data-view="bookmarks">
+          Bookmarks <span class="nav-num">06</span>
+        </button>
+        <button class="nav-btn" data-view="comms">
+          Comms <span class="nav-num">07</span>
+        </button>
+        <button class="nav-btn" data-view="sites">
+          Top Sites <span class="nav-num">08</span>
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Info</div>
+        <button class="nav-btn" data-view="system">
+          System <span class="nav-num">09</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- FEED -->
+      <div class="view active" id="view-feed">
+        <div class="feed-hero">
+          <div class="feed-blob b1"></div>
+          <div class="feed-blob b2"></div>
+          <div class="feed-hero-content">
+            <div class="feed-hero-mark"><span>SYS</span> — recoil.feed</div>
+            <div class="feed-hero-title" id="feed-hero-title">RECOIL<br>v2 Dark.</div>
+            <div class="feed-hero-body" id="feed-hero-body">Dark editorial interface. Bookmarks synced from browser. System monitors all tab memory. Search panel is priority — topbar vanishes when active.</div>
+            <div class="feed-hero-meta">
+              <span id="feed-hero-time">now</span>
+              <span id="feed-hero-mark2">SYS</span>
+            </div>
+          </div>
+        </div>
+        <div class="feed-list" id="feedList"></div>
+      </div>
+
+      <!-- SEARCH — fullscreen, topbar hides -->
+      <div class="view" id="view-search">
+        <div class="search-center">
+          <div class="search-center-label">Terminal Search</div>
+          <div class="search-big-wrap">
+            <div class="search-big-pfx">_</div>
+            <input class="search-big" id="bigSearch" placeholder="Query or URL..." autocomplete="off" spellcheck="false">
+          </div>
+          <div class="engine-row">
+            <button class="engine-btn active" data-engine="google">Google</button>
+            <button class="engine-btn" data-engine="ddg">DuckDuckGo</button>
+            <button class="engine-btn" data-engine="bing">Bing</button>
+            <button class="engine-btn" data-engine="brave">Brave</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO -->
+      <div class="view" id="view-todo">
+        <div class="panel-wrap">
+          <div class="section-head">Task Manager <span id="todoStat">0 / 0</span></div>
+          <div class="input-row">
+            <input class="lx-input" id="todoInput" placeholder="New task..." autocomplete="off">
+            <button class="lx-btn" id="todoAddBtn">Add</button>
+          </div>
+          <div class="todo-progress">
+            <div class="todo-pbar"><div class="todo-pfill" id="todoFill" style="width:0%"></div></div>
+            <div class="todo-ptext" id="todoPercent">0%</div>
+          </div>
+          <div id="todoList"></div>
+        </div>
+      </div>
+
+      <!-- JOURNAL -->
+      <div class="view" id="view-journal">
+        <div class="panel-wrap">
+          <div class="section-head">Daily Journal</div>
+          <div class="j-nav">
+            <button class="lx-btn ghost" id="jPrev">◀</button>
+            <div class="j-date" id="jDateLabel">--</div>
+            <button class="lx-btn ghost" id="jNext">▶</button>
+            <button class="lx-btn" id="jToday">Today</button>
+          </div>
+          <textarea class="j-textarea" id="jEditor" placeholder="Start writing..."></textarea>
+          <div class="j-status" id="jStatus"></div>
+          <div id="jHistWrap" style="display:none;margin-top:28px">
+            <div class="section-head" style="margin-bottom:12px">History</div>
+            <div id="jHistList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI AGENTS -->
+      <div class="view" id="view-agents">
+        <div class="panel-wrap">
+          <div class="section-head">AI Agents</div>
+          <div class="agents-grid" id="agentsGrid"></div>
+          <div class="add-block">
+            <div class="add-block-title">Add Agent</div>
+            <div class="input-row" style="margin-bottom:12px">
+              <input class="lx-input" id="agentName" placeholder="Name">
+              <input class="lx-input" id="agentMark" placeholder="Mark" style="max-width:90px">
+            </div>
+            <div class="input-row">
+              <input class="lx-input" id="agentUrl" placeholder="https://...">
+            </div>
+            <button class="lx-btn" id="agentAdd" style="margin-top:4px;width:100%">Add Agent</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKMARKS -->
+      <div class="view" id="view-bookmarks">
+        <div class="panel-wrap">
+          <div class="section-head">
+            Browser Bookmarks
+            <span id="bmCount" style="color:var(--gray)">—</span>
+            <button class="bm-refresh-btn" id="bmRefresh">↺ Sync</button>
+          </div>
+          <div class="bm-search-wrap">
+            <input class="bm-search" id="bmSearch" placeholder="Filter bookmarks..." autocomplete="off">
+          </div>
+          <div class="bm-list" id="bmList">
+            <div class="empty-state">Loading bookmarks…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMS -->
+      <div class="view" id="view-comms">
+        <div class="panel-wrap">
+          <div class="section-head">Launchers</div>
+          <div id="commsList"></div>
+        </div>
+      </div>
+
+      <!-- TOP SITES -->
+      <div class="view" id="view-sites">
+        <div class="panel-wrap">
+          <div class="section-head">Frequently Visited</div>
+          <div class="sites-grid" id="sitesGrid">
+            <div class="empty-state">Loading top sites…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SYSTEM -->
+      <div class="view" id="view-system">
+        <div class="panel-wrap">
+          <div class="section-head">System</div>
+          <!-- Big stat cards -->
+          <div class="sys-grid">
+            <div class="sys-card">
+              <div class="sys-card-label">JS Heap Used</div>
+              <div class="sys-card-val" id="sysHeap">—</div>
+              <div class="sys-card-sub">MB</div>
+              <div class="sys-bar"><div class="sys-bar-fill" id="sysHeapBar" style="width:0%"></div></div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-label">Open Tabs</div>
+              <div class="sys-card-val" id="sysTabs">—</div>
+              <div class="sys-card-sub">windows</div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-label">Heap Limit</div>
+              <div class="sys-card-val" id="sysHeapLim">—</div>
+              <div class="sys-card-sub">MB total</div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-label">Status</div>
+              <div class="sys-card-val" id="sysOnlineCard" style="font-size:12px;margin-top:4px">—</div>
+              <div class="sys-card-sub" id="sysConn">—</div>
+            </div>
+          </div>
+          <!-- Detail rows -->
+          <div class="sys-stat-row"><span class="sys-stat-k">Time</span>    <span class="sys-stat-v" id="sysTime">—</span></div>
+          <div class="sys-stat-row"><span class="sys-stat-k">Date</span>    <span class="sys-stat-v" id="sysDate">—</span></div>
+          <div class="sys-stat-row"><span class="sys-stat-k">Online</span>  <span class="sys-stat-v" id="sysOnline">—</span></div>
+          <div class="sys-stat-row"><span class="sys-stat-k">Network</span> <span class="sys-stat-v" id="sysNet">—</span></div>
+          <div class="sys-stat-row"><span class="sys-stat-k">Est. Tab Memory</span><span class="sys-stat-v" id="sysTabMem">Calculating…</span></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- STATUSBAR -->
+  <footer class="statusbar">
+    <div class="sb-dot"></div>
+    <span id="sbInfo" style="color:var(--gray)">RECOIL</span>
+    <span class="sb-sep"></span>
+    <span id="sbTodoStatus" style="color:var(--gray);font-family:var(--mono);font-size:9px"></span>
+  </footer>
+</div>
+
+<script src="newtab.js"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RECOIL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=Syne:wght@700;800&display=swap');
+:root{
+  --bg:#0a0a0a; --bg2:#111; --bg3:#1a1a1a;
+  --ink:#f0ede8; --gray:#5a5855; --gray2:#3a3836;
+  --line:rgba(255,255,255,.08); --red:#e8192c;
+  --font:'Syne',sans-serif; --mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{width:280px;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:12px;}
+.hdr{padding:16px 18px 14px;border-bottom:1px solid var(--line);background:var(--bg2);}
+.wordmark{font-size:13px;font-weight:800;letter-spacing:.28em;color:var(--ink);text-transform:uppercase;margin-bottom:4px;}
+.wordmark em{font-style:normal;color:var(--red);}
+.sub{font-family:var(--mono);font-size:9px;color:var(--gray);letter-spacing:.12em;}
+.master{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--bg2);}
+.master-lbl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);}
+.stat-txt{font-family:var(--mono);font-size:9px;color:var(--gray);margin-left:8px;}
+.tog{position:relative;width:38px;height:18px;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;}
+.tog-sl{position:absolute;inset:0;background:var(--gray2);cursor:pointer;transition:.18s;}
+.tog-sl::before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:var(--gray);transition:.18s;}
+.tog input:checked+.tog-sl{background:var(--ink);}
+.tog input:checked+.tog-sl::before{transform:translateX(20px);background:var(--bg);}
+.section{border-bottom:1px solid var(--line);padding:12px 18px;}
+.sec-label{font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.row:last-child{margin-bottom:0;}
+.row-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--ink);}
+.row-sub{font-family:var(--mono);font-size:9px;color:var(--gray);margin-top:2px;}
+.footer{padding:10px 18px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);}
+.shortcut-txt{font-family:var(--mono);font-size:9px;color:var(--gray);letter-spacing:.06em;}
+kbd{background:var(--bg3);border:1px solid var(--line);padding:1px 5px;font-family:var(--mono);font-size:8px;color:var(--ink);}
+.ver{font-family:var(--mono);font-size:9px;color:var(--gray);}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="wordmark"><em>R</em>ECOIL</div>
+  <div class="sub">Liminal · Unbounded · Dark</div>
+</div>
+<div class="master" id="masterRow">
+  <div><span class="master-lbl">Extension</span><span class="stat-txt" id="statusText">Active</span></div>
+  <label class="tog" onclick="event.stopPropagation()">
+    <input type="checkbox" id="togEnabled" checked><span class="tog-sl"></span>
+  </label>
+</div>
+<div class="section">
+  <div class="sec-label">Options</div>
+  <div class="row">
+    <div><div class="row-lbl">Sidebar on Sites</div><div class="row-sub">Inject sidebar on web pages</div></div>
+    <label class="tog"><input type="checkbox" id="togSidebar" checked><span class="tog-sl"></span></label>
+  </div>
+</div>
+<div class="footer">
+  <div class="shortcut-txt"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> toggle</div>
+  <div class="ver">v2.0</div>
+</div>
+<script src="popup.js"></script>
+</body>
+</html>
